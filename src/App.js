@@ -1,25 +1,45 @@
-import logo from './logo.svg';
-import './App.css';
+import SearchBar from "./component/searchbar.js"
+import ImageList from "./component/imageList.js"
+import Pagination from "./component/Pagination.js"
+import "./app.scss";
+import axios from "axios";
+import { useEffect, useState } from "react"
+const clientId="6ZzzTrYg3gKUti41g5M1EXkJ0CnjqFs0tikY5a4p8Oc";
+const ImageBazaar=()=>{
+  const [query,setQuery]=useState('');
+  const [pageNumber,setPageNumber]=useState(1);
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+  const [response,setResponse]=useState({apistatus:0,data:null});
+const isLoading=response.apistatus===1;
+  const onSearch=()=>{
+    //fetch data for query and page number
+    if(pageNumber===1){
+      fetchData();
+    }else{
+    setPageNumber(1);
+    }
+  }
+  const fetchData=(async ()=>{
+    try{
+      setResponse({...response,apistatus:1});
+    const serverResponse=await axios(`https://api.unsplash.com/search/photos?page=${pageNumber}&query=${query}&client_id=${clientId}`)
+    setResponse({data:serverResponse.data,apistatus:2});
+    }
+    catch(err){
+    setResponse({...response,apistatus:3});
+    }
+    })
+  useEffect(()=>{
+    //fetch data with default query and page number
+    //IIFE immediately involved invoke function expression
+fetchData();
+  },[pageNumber]);
+  return(
+    <div className="app">
+    <SearchBar  onChangeText={(e)=>setQuery(e.target.value)} onSearch={onSearch} isLoading={isLoading}/>
+   <ImageList data={response.data} apiStatus={response.apistatus}/>
+    <Pagination pageNumber={pageNumber} setPageNumber={setPageNumber} isLoading={isLoading}/>
     </div>
-  );
+  )
 }
-
-export default App;
+export default ImageBazaar;
